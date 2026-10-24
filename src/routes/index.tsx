@@ -169,6 +169,38 @@ function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => 
               if (name) update({ ...p, workers: [...p.workers, { id: uid(), name, rate: 1500 }] });
             }} />
           </>
+        ) : tab === "items" ? (
+          <>
+            {(p.items?.length ?? 0) === 0 && (
+              <p className="text-center text-muted-foreground">لا توجد مواد مسجّلة لهذه الورشة</p>
+            )}
+            {(p.items ?? []).map((it, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-soft">
+                <span className="flex-1 text-sm font-bold">{it.name}</span>
+                <span className="text-xs text-muted-foreground">{fmt(it.qty)} × {fmt(it.price)}</span>
+                <b className="font-display text-sm">{fmt(it.total)}</b>
+                <button
+                  onClick={() => update({ ...p, items: (p.items ?? []).filter((_, j) => j !== i) })}
+                  className="text-destructive" aria-label="حذف المادة"><Trash2 size={16} /></button>
+              </div>
+            ))}
+            {(p.items?.length ?? 0) > 0 && (
+              <div className="space-y-2 rounded-2xl bg-card p-3 shadow-soft">
+                <div className="flex items-center justify-between text-sm">
+                  <span>مجموع المواد</span>
+                  <b className="font-display text-lg">{fmt(itemsTotal(p))} دج</b>
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  مدفوع:
+                  <input className="field flex-1" type="number" inputMode="numeric" value={p.itemsPaid || ""}
+                    onChange={(e) => update({ ...p, itemsPaid: +e.target.value })} />
+                  <span className={itemsTotal(p) - (p.itemsPaid ?? 0) > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>
+                    باقي {fmt(itemsTotal(p) - (p.itemsPaid ?? 0))}
+                  </span>
+                </label>
+              </div>
+            )}
+          </>
         ) : (
           <>
             {weeks.length === 0 && <p className="text-center text-muted-foreground">لا توجد أسابيع بعد</p>}
