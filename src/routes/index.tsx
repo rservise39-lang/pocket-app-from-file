@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowRight, Plus, Trash2, Users, CalendarDays } from "lucide-react";
+import { useRef, useState, type ChangeEvent } from "react";
+import { ArrowRight, FileUp, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
 import { DAYS, fmt, uid, useProjects, weekTotal, workerDays, type Project } from "@/lib/store";
+import { importSheetFile } from "@/lib/importSheet";
 import { InstallButton } from "@/components/InstallButton";
 
 export const Route = createFileRoute("/")({
@@ -27,6 +28,28 @@ const addDays = (d: string, n: number) => {
 function App() {
   const [projects, setProjects] = useProjects();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    setBusy(true);
+    setMsg("جارٍ قراءة الملف…");
+    try {
+      const { data, summary } = await importSheetFile(projects, f);
+      setProjects(data);
+      setMsg(
+        `تمت الإضافة: ${summary.projects} ورشة، ${summary.workers} عامل، ${summary.weeks} أسبوع، ${summary.items} مادة`,
+      );
+    } catch {
+      setMsg("تعذّر قراءة الملف. جرّب ملف Excel آخر.");
+    } finally {
+      setBusy(false);
+    }
+  };
   const open = projects.find((p) => p.id === openId);
   const update = (p: Project) => setProjects(projects.map((x) => (x.id === p.id ? p : x)));
 
@@ -45,6 +68,17 @@ function App() {
             </p>
           </header>
           <main className="-mt-4 space-y-3 px-4">
+            <div className="rounded-2xl bg-card p-3 shadow-soft">
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={busy}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-60">
+                <FileUp size={16} />
+                {busy ? "جارٍ القراءة…" : "استيراد من ملف Excel"}
+              </button>
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFile} />
+              {msg && <p className="mt-2 text-center text-xs text-muted-foreground">{msg}</p>}
+            </div>
             {projects.map((p) => {
               const total = p.weeks.reduce((a, w) => a + weekTotal(p, w), 0);
               return (
@@ -57,6 +91,9 @@ function App() {
                   <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Users size={14} />{p.workers.length} عمال</span>
                     <span className="flex items-center gap-1"><CalendarDays size={14} />{p.weeks.length} أسابيع</span>
+                    {(p.items?.length ?? 0) > 0 && (
+                      <span className="flex items-center gap-1"><Package size={14} />{p.items!.length} مادة</span>
+                    )}
                   </div>
                 </button>
               );
@@ -83,7 +120,7 @@ function Fab({ label, onClick }: { label: string; onClick: () => void }) {
 }
 
 function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
-  const [tab, setTab] = useState<"weeks" | "workers">("weeks");
+  const [tab, setTab] = useState<"weeks" | "workers" | "items">("weeks");
   const weeks = [...p.weeks].reverse();
 
   const setAtt = (wid: string, kid: string, d: number) => {
@@ -104,10 +141,10 @@ function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => 
         </div>
         <h1 className="mt-3 font-display text-3xl font-bold">{p.name}</h1>
         <div className="mt-4 flex gap-2">
-          {(["weeks", "workers"] as const).map((t) => (
+          {(["weeks", "workers", "items"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-full px-4 py-1.5 text-sm font-bold ${tab === t ? "bg-card text-foreground" : "bg-primary-foreground/15"}`}>
-              {t === "weeks" ? "الأسابيع" : "العمال"}
+              {t === "weeks" ? "الأسابيع" : t === "workers" ? "العمال" : "المواد"}
             </button>
           ))}
         </div>
