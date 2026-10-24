@@ -283,6 +283,9 @@ export function parseMaterials(grid: Cell[][], sheetName: string, clients: strin
 
     let name: string | null = null;
     for (let r = list.rows[0] - 1; r >= Math.max(0, list.rows[0] - 3) && !name; r--) {
+      const above = at(grid, r, list.nameCol);
+      // a priced item row above means we walked into the previous invoice
+      if (isText(above) && !isFiller(above) && num(at(grid, r, list.nameCol - 1)) !== null) break;
       name =
         labelValue(grid, r, list.nameCol, list.nameCol) ??
         labelValue(grid, r, list.nameCol + 1, list.nameCol + 2) ??
