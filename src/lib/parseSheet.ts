@@ -188,35 +188,25 @@ export function parseAttendance(grid: Cell[][], sheetName: string) {
     }
   }
 
+  // worker names come from the blocks themselves
+  for (const project of projects.values()) {
+    const names = new Map<string, string>();
+    for (const wk of project.weeks) {
+      for (const w of Object.keys(wk.att)) if (!names.has(keyName(w))) names.set(keyName(w), w);
+    }
+    project.workers = [...names.values()].map((display) => ({ name: display, rate: 0 }));
+  }
+
+  // a worker's daily pay is what the sheet's own pay row implies (pay ÷ days)
   for (const [k, list] of rates) {
-    const name = k.split("\u0000")[0];
-    const workerKey = k.split("\u0000")[1];
-    const project = projects.get(name);
+    const [projName, workerKey] = k.split("\u0000");
+    const project = projects.get(projName);
     if (!project) continue;
     const counts = new Map<number, number>();
     for (const r of list) counts.set(r, (counts.get(r) ?? 0) + 1);
     const rate = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
     const w = project.workers.find((x) => keyName(x.name) === workerKey);
-    if (w) w.rate = rate;
-    else project.workers.push({ name: list.length ? name : name, rate });
-  }
-
-  // worker names come from the blocks themselves; make sure each is listed
-  for (const project of projects.values()) {
-    const names = new Map<string, string>();
-    for (const w of project.weeks.flatMap((wk) => Object.keys(wk.att))) if (!names.has(keyName(w))) names.set(keyName(w), w);
-    for (const [k, display] of names) {
-      const existing = project.workers.find((x) => keyName(x.name) === k);
-      if (existing) existing.name = display;
-      else project.workers.push({ name: display, rate: 0 });
-    }
-    const seen = new Set<string>();
-    project.workers = project.workers.filter((w) => {
-      const k = keyName(w.name);
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
+    if (w && !w.rate) w.rate = rate;
   }
 
   return { projects: [...projects.values()], clients };
