@@ -76,7 +76,7 @@ function App() {
                 <FileUp size={16} />
                 {busy ? "جارٍ القراءة…" : "استيراد من ملف Excel"}
               </button>
-              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFile} />
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="sr-only" onChange={onFile} />
               {msg && <p className="mt-2 text-center text-xs text-muted-foreground">{msg}</p>}
             </div>
             {projects.map((p) => {
