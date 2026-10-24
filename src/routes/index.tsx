@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Plus, Trash2, Users, CalendarDays } from "lucide-react";
 import { DAYS, fmt, uid, useProjects, weekTotal, workerDays, type Project } from "@/lib/store";
+import { InstallButton } from "@/components/InstallButton";
 
 export const Route = createFileRoute("/")({
   head: () => ({
