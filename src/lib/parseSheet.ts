@@ -214,32 +214,34 @@ export function parseAttendance(grid: Cell[][], sheetName: string) {
 
 type ItemList = { nameCol: number; rows: number[]; totalCol: number };
 
+function rowHasFiller(grid: Cell[][], r: number) {
+  for (const v of grid[r] ?? []) if (isText(v) && isFiller(v)) return true;
+  return false;
+}
+
 function findItemLists(grid: Cell[][]): ItemList[] {
   const cols = grid.reduce((m, r) => Math.max(m, r.length), 0);
   const lists: ItemList[] = [];
   for (let nc = 1; nc < cols; nc++) {
-    const rows: number[] = [];
+    let open: ItemList | null = null;
     for (let r = 0; r < grid.length; r++) {
+      // an invoice ends at its own total / discount / paid / remaining rows
+      if (rowHasFiller(grid, r)) {
+        open = null;
+        continue;
+      }
       const name = grid[r]?.[nc];
       if (!isText(name) || isFiller(name) || dayIndex(name) >= 0 || DATE_RE.test(name)) continue;
       const price = num(at(grid, r, nc - 1));
       if (price === null || price < 5) continue;
       let totalCol = -1;
-      let qty: number | null = null;
-      for (let c = nc + 1; c < (grid[r]?.length ?? 0); c++) {
-        const v = num(grid[r][c]);
-        if (v !== null) {
-          if (qty === null) qty = v;
-          totalCol = c;
-        }
-      }
+      for (let c = nc + 1; c < (grid[r]?.length ?? 0); c++) if (num(grid[r][c]) !== null) totalCol = c;
       if (totalCol < 0) continue;
-      rows.push(r);
-      if (lists.length && lists[lists.length - 1].nameCol === nc) {
-        const last = lists[lists.length - 1];
-        if (r - last.rows[last.rows.length - 1] <= 2) last.rows.push(r);
-        else lists.push({ nameCol: nc, rows: [r], totalCol });
-      } else lists.push({ nameCol: nc, rows: [r], totalCol });
+      if (open && r - open.rows[open.rows.length - 1] <= 3) open.rows.push(r);
+      else {
+        open = { nameCol: nc, rows: [r], totalCol };
+        lists.push(open);
+      }
     }
   }
   return lists.filter((l) => l.rows.length >= 3);
