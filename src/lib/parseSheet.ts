@@ -36,7 +36,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const isText = (v: Cell): v is string => typeof v === "string" && v.trim() !== "";
 const num = (v: Cell): number | null => (typeof v === "number" && isFinite(v) ? v : null);
-const isFiller = (s: string) => FILLER_RE.test(normAr(s));
+const isFiller = (s: string) => normAr(s).split(" ").some((w) => w !== "" && FILLER_RE.test(w));
 const dayIndex = (v: Cell) => (isText(v) ? DAY_NAMES.findIndex((d) => normAr(d) === normAr(v)) : -1);
 const at = (grid: Cell[][], r: number, c: number): Cell =>
   r >= 0 && c >= 0 && r < grid.length && c < (grid[r]?.length ?? 0) ? grid[r][c] : null;
