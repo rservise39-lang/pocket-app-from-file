@@ -61,6 +61,7 @@ function App() {
                 </button>
               );
             })}
+            <InstallButton />
           </main>
           <Fab label="ورشة جديدة" onClick={() => {
             const name = prompt("اسم الورشة / الزبون");
