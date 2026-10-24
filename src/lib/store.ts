@@ -4,13 +4,22 @@ export const DAYS = ["السبت", "الأحد", "الإثنين", "الثلاث
 
 export type Worker = { id: string; name: string; rate: number };
 export type Week = { id: string; start: string; att: Record<string, number[]>; paid: number };
-export type Project = { id: string; name: string; workers: Worker[]; weeks: Week[] };
+export type Item = { name: string; price: number; qty: number; total: number };
+export type Project = {
+  id: string;
+  name: string;
+  workers: Worker[];
+  weeks: Week[];
+  items?: Item[];
+  itemsPaid?: number;
+};
 
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
 export const workerDays = (w: Week, id: string) => (w.att[id] ?? []).reduce((a, b) => a + (b || 0), 0);
 export const weekTotal = (p: Project, w: Week) =>
   p.workers.reduce((s, k) => s + workerDays(w, k.id) * k.rate, 0);
+export const itemsTotal = (p: Project) => (p.items ?? []).reduce((s, it) => s + it.total, 0);
 
 export const fmt = (n: number) => n.toLocaleString("en-US");
 
