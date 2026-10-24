@@ -6,7 +6,7 @@ export type Cell = string | number | null;
 
 export type ParsedWeek = { start: string | null; att: Record<string, number[]> };
 export type ParsedWorker = { name: string; rate: number };
-export type ParsedItem = { name: string; price: number; qty: number };
+export type ParsedItem = { name: string; price: number; qty: number; total: number };
 export type ParsedProject = {
   name: string;
   workers: ParsedWorker[];
@@ -304,7 +304,7 @@ export function parseMaterials(grid: Cell[][], sheetName: string, clients: strin
           break;
         }
       }
-      return { name: itemName, price, qty: qty || 1 };
+      return { name: itemName, price, qty: qty || 1, total: num(at(grid, r, list.totalCol)) ?? price * (qty || 1) };
     });
 
     out.push({

@@ -69,15 +69,15 @@ describe("mergeParsed", () => {
   it("adds the missing worker, the week and the new site without duplicating", () => {
     const { data, summary } = mergeParsed(base, parsed);
     expect(summary).toEqual({ projects: 1, workers: 1, weeks: 1, items: 3 });
-    constعيد = data.find((p) => p.name === "العيد")!;
     expect(data).toHaveLength(2);
-    expect(عيد.workers.map((w) => w.name)).toEqual(["سليم", "القش"]);
-    expect(عيد.workers[1].rate).toBe(1000);
-    expect(عيد.weeks[0].start).toBe("2025-05-31");
-    expect(عيد.weeks[0].att[عيد.workers[0].id]).toEqual([1, 1, 1, 1, 1, 1]);
-    const سحة = data.find((p) => p.name === "سحة")!;
-    expect(سحة.items).toHaveLength(3);
-    expect(سحة.itemsPaid).toBe(6500);
+    const site = data.find((p) => p.name === "العيد")!;
+    expect(site.workers.map((w) => w.name)).toEqual(["سليم", "القش"]);
+    expect(site.workers[1].rate).toBe(1000);
+    expect(site.weeks[0].start).toBe("2025-05-31");
+    expect(site.weeks[0].att[site.workers[0].id]).toEqual([1, 1, 1, 1, 1, 1]);
+    const mat = data.find((p) => p.name === "سحة")!;
+    expect(mat.items).toHaveLength(3);
+    expect(mat.itemsPaid).toBe(6500);
   });
 
   it("does not add anything twice when the same file is imported again", () => {
