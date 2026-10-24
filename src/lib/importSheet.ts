@@ -73,7 +73,7 @@ export function mergeParsed(projects: Project[], parsed: ParsedProject[]) {
       const start = pw.start ?? (last ? last.start : new Date().toISOString().slice(0, 10));
       let week = pw.start ? target.weeks.find((w) => w.start === pw.start) : undefined;
       if (!week) {
-        week = { id: uid(), start, att: {}, paid: pw.paid || 0 };
+        week = { id: uid(), start, att: {}, paid: 0 };
         target.weeks.push(week);
         summary.weeks++;
       }

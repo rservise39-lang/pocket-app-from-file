@@ -30,18 +30,18 @@ const invoice = [
 
 describe("parseSheet", () => {
   it("reads attendance, the week start and each worker's daily pay", () => {
-    const [p] = parseSheet(attendance, "Feuil1");
+    const p = parseSheet(attendance, "Feuil1")[0]!;
     expect(p.name).toBe("العيد");
     expect(p.weeks).toHaveLength(1);
-    expect(p.weeks[0].start).toBe("2025-05-31");
-    expect(p.weeks[0].att["سليم"]).toEqual([1, 1, 1, 1, 1, 1]);
-    expect(p.weeks[0].att["القش"]).toEqual([0.5, 1, 0, 1, 1, 0.5]);
+    expect(p.weeks[0]!.start).toBe("2025-05-31");
+    expect(p.weeks[0]!.att["سليم"]).toEqual([1, 1, 1, 1, 1, 1]);
+    expect(p.weeks[0]!.att["القش"]).toEqual([0.5, 1, 0, 1, 1, 0.5]);
     expect(p.workers.find((w) => w.name === "سليم")?.rate).toBe(2000);
     expect(p.workers.find((w) => w.name === "القش")?.rate).toBe(1000);
   });
 
   it("reads a material invoice with its total and what was paid", () => {
-    const [p] = parseSheet(invoice, "سحة");
+    const p = parseSheet(invoice, "سحة")[0]!;
     expect(p.name).toBe("سحة");
     expect(p.items).toEqual([
       { name: "لصقة", price: 100, qty: 6, total: 600 },
@@ -72,9 +72,9 @@ describe("mergeParsed", () => {
     expect(data).toHaveLength(2);
     const site = data.find((p) => p.name === "العيد")!;
     expect(site.workers.map((w) => w.name)).toEqual(["سليم", "القش"]);
-    expect(site.workers[1].rate).toBe(1000);
-    expect(site.weeks[0].start).toBe("2025-05-31");
-    expect(site.weeks[0].att[site.workers[0].id]).toEqual([1, 1, 1, 1, 1, 1]);
+    expect(site.workers[1]!.rate).toBe(1000);
+    expect(site.weeks[0]!.start).toBe("2025-05-31");
+    expect(site.weeks[0]!.att[site.workers[0]!.id]).toEqual([1, 1, 1, 1, 1, 1]);
     const mat = data.find((p) => p.name === "سحة")!;
     expect(mat.items).toHaveLength(3);
     expect(mat.itemsPaid).toBe(6500);
