@@ -19,6 +19,8 @@
  */
 
 @theme inline {
+  --font-display: "Reem Kufi", sans-serif;
+  --font-body: "Tajawal", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -62,26 +64,27 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 0.75rem;
+  --background: oklch(0.96 0.015 85);
+  --foreground: oklch(0.22 0.03 60);
+  --card: oklch(0.995 0.005 85);
+  --card-foreground: oklch(0.22 0.03 60);
+  --popover: oklch(0.995 0.005 85);
+  --popover-foreground: oklch(0.22 0.03 60);
+  --primary: oklch(0.45 0.09 165);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.92 0.02 85);
+  --secondary-foreground: oklch(0.22 0.03 60);
+  --muted: oklch(0.93 0.015 85);
+  --muted-foreground: oklch(0.5 0.03 60);
+  --accent: oklch(0.82 0.13 75);
+  --accent-foreground: oklch(0.25 0.05 60);
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.02 85);
+  --input: oklch(0.88 0.02 85);
+  --ring: oklch(0.45 0.09 165);
+  --shadow-soft: 0 6px 20px -8px oklch(0.3 0.05 60 / 25%);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -141,4 +144,11 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@layer components {
+  .hero { background: linear-gradient(160deg, var(--primary), oklch(0.32 0.07 170)); color: var(--primary-foreground); border-radius: 0 0 1.75rem 1.75rem; }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .field { background: var(--muted); border-radius: 0.6rem; padding: 0.45rem 0.6rem; outline: none; min-width: 0; }
+  .field:focus { box-shadow: 0 0 0 2px var(--ring); }
 }
