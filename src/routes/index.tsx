@@ -69,12 +69,7 @@ function App() {
           <Fab label="ورشة جديدة" onClick={() => {
             const name = prompt("اسم الورشة / الزبون");
             if (!name) return;
-            const seen = new Map<string, { id: string; name: string; rate: number }>();
-            for (const pr of projects) for (const w of pr.workers) {
-              const k = w.name.trim();
-              if (k && !seen.has(k)) seen.set(k, { id: uid(), name: k, rate: w.rate });
-            }
-            setProjects([...projects, { id: uid(), name, workers: [...seen.values()], weeks: [] }]);
+            setProjects([...projects, { id: uid(), name, workers: [], weeks: [] }]);
           }} />
         </>
       )}
