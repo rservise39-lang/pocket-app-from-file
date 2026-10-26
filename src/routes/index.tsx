@@ -28,28 +28,6 @@ const addDays = (d: string, n: number) => {
 function App() {
   const [projects, setProjects] = useProjects();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f) return;
-    setBusy(true);
-    setMsg("جارٍ قراءة الملف…");
-    try {
-      const { data, summary } = await importSheetFile(projects, f);
-      setProjects(data);
-      setMsg(
-        `تمت الإضافة: ${summary.projects} ورشة، ${summary.workers} عامل، ${summary.weeks} أسبوع، ${summary.items} مادة`,
-      );
-    } catch {
-      setMsg("تعذّر قراءة الملف. جرّب ملف Excel آخر.");
-    } finally {
-      setBusy(false);
-    }
-  };
   const open = projects.find((p) => p.id === openId);
   const update = (p: Project) => setProjects(projects.map((x) => (x.id === p.id ? p : x)));
 
@@ -68,17 +46,6 @@ function App() {
             </p>
           </header>
           <main className="-mt-4 space-y-3 px-4">
-            <div className="rounded-2xl bg-card p-3 shadow-soft">
-              <button
-                onClick={() => fileRef.current?.click()}
-                disabled={busy}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-60">
-                <FileUp size={16} />
-                {busy ? "جارٍ القراءة…" : "استيراد من ملف Excel"}
-              </button>
-              <input ref={fileRef} type="file" accept=".xlsx,.xls" className="sr-only" onChange={onFile} />
-              {msg && <p className="mt-2 text-center text-xs text-muted-foreground">{msg}</p>}
-            </div>
             {projects.map((p) => {
               const total = p.weeks.reduce((a, w) => a + weekTotal(p, w), 0);
               return (
@@ -102,7 +69,13 @@ function App() {
           </main>
           <Fab label="ورشة جديدة" onClick={() => {
             const name = prompt("اسم الورشة / الزبون");
-            if (name) setProjects([...projects, { id: uid(), name, workers: [], weeks: [] }]);
+            if (!name) return;
+            const seen = new Map<string, { id: string; name: string; rate: number }>();
+            for (const pr of projects) for (const w of pr.workers) {
+              const k = w.name.trim();
+              if (k && !seen.has(k)) seen.set(k, { id: uid(), name: k, rate: w.rate });
+            }
+            setProjects([...projects, { id: uid(), name, workers: [...seen.values()], weeks: [] }]);
           }} />
         </>
       )}
