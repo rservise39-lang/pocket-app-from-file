@@ -27,13 +27,22 @@ const addDays = (d: string, n: number) => {
 function App() {
   const [projects, setProjects] = useProjects();
   const [openId, setOpenId] = useState<string | null>(null);
+  const known = (() => {
+    const seen = new Set<string>();
+    const list: { name: string; rate: number }[] = [];
+    for (const pr of projects) for (const w of pr.workers) {
+      const k = w.name.trim();
+      if (k && !seen.has(k)) { seen.add(k); list.push({ name: k, rate: w.rate }); }
+    }
+    return list;
+  })();
   const open = projects.find((p) => p.id === openId);
   const update = (p: Project) => setProjects(projects.map((x) => (x.id === p.id ? p : x)));
 
   return (
     <div dir="rtl" className="mx-auto min-h-screen max-w-md bg-background pb-24 font-body">
       {open ? (
-        <ProjectView p={open} onBack={() => setOpenId(null)} update={update}
+        <ProjectView p={open} known={known} onBack={() => setOpenId(null)} update={update}
           remove={() => { if (confirm("حذف الورشة؟")) { setProjects(projects.filter((x) => x.id !== open.id)); setOpenId(null); } }} />
       ) : (
         <>
