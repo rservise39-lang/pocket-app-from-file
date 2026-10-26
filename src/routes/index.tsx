@@ -95,7 +95,7 @@ function Fab({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
+function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: { name: string; rate: number }[]; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
   const [tab, setTab] = useState<"weeks" | "workers" | "items">("weeks");
   const weeks = [...p.weeks].reverse();
 
