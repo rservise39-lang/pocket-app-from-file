@@ -27,13 +27,22 @@ const addDays = (d: string, n: number) => {
 function App() {
   const [projects, setProjects] = useProjects();
   const [openId, setOpenId] = useState<string | null>(null);
+  const known = (() => {
+    const seen = new Set<string>();
+    const list: { name: string; rate: number }[] = [];
+    for (const pr of projects) for (const w of pr.workers) {
+      const k = w.name.trim();
+      if (k && !seen.has(k)) { seen.add(k); list.push({ name: k, rate: w.rate }); }
+    }
+    return list;
+  })();
   const open = projects.find((p) => p.id === openId);
   const update = (p: Project) => setProjects(projects.map((x) => (x.id === p.id ? p : x)));
 
   return (
     <div dir="rtl" className="mx-auto min-h-screen max-w-md bg-background pb-24 font-body">
       {open ? (
-        <ProjectView p={open} onBack={() => setOpenId(null)} update={update}
+        <ProjectView p={open} known={known} onBack={() => setOpenId(null)} update={update}
           remove={() => { if (confirm("حذف الورشة؟")) { setProjects(projects.filter((x) => x.id !== open.id)); setOpenId(null); } }} />
       ) : (
         <>
@@ -69,12 +78,7 @@ function App() {
           <Fab label="ورشة جديدة" onClick={() => {
             const name = prompt("اسم الورشة / الزبون");
             if (!name) return;
-            const seen = new Map<string, { id: string; name: string; rate: number }>();
-            for (const pr of projects) for (const w of pr.workers) {
-              const k = w.name.trim();
-              if (k && !seen.has(k)) seen.set(k, { id: uid(), name: k, rate: w.rate });
-            }
-            setProjects([...projects, { id: uid(), name, workers: [...seen.values()], weeks: [] }]);
+            setProjects([...projects, { id: uid(), name, workers: [], weeks: [] }]);
           }} />
         </>
       )}
@@ -91,7 +95,7 @@ function Fab({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
+function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: { name: string; rate: number }[]; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
   const [tab, setTab] = useState<"weeks" | "workers" | "items">("weeks");
   const weeks = [...p.weeks].reverse();
 
@@ -125,6 +129,23 @@ function ProjectView({ p, onBack, update, remove }: { p: Project; onBack: () => 
       <main className="space-y-4 p-4">
         {tab === "workers" ? (
           <>
+            {(() => {
+              const available = known.filter((k) => !p.workers.some((x) => x.name.trim() === k.name));
+              if (available.length === 0) return null;
+              return (
+                <div className="rounded-2xl bg-card p-3 shadow-soft">
+                  <p className="mb-2 text-xs text-muted-foreground">أضف من عمالك السابقين:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {available.map((k) => (
+                      <button key={k.name} onClick={() => update({ ...p, workers: [...p.workers, { id: uid(), name: k.name, rate: k.rate }] })}
+                        className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-bold">
+                        {k.name}<Plus size={14} className="text-primary" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             {p.workers.map((k) => (
               <div key={k.id} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-soft">
                 <input className="field flex-1" value={k.name}
