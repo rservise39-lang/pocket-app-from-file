@@ -129,6 +129,23 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
       <main className="space-y-4 p-4">
         {tab === "workers" ? (
           <>
+            {(() => {
+              const available = known.filter((k) => !p.workers.some((x) => x.name.trim() === k.name));
+              if (available.length === 0) return null;
+              return (
+                <div className="rounded-2xl bg-card p-3 shadow-soft">
+                  <p className="mb-2 text-xs text-muted-foreground">أضف من عمالك السابقين:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {available.map((k) => (
+                      <button key={k.name} onClick={() => update({ ...p, workers: [...p.workers, { id: uid(), name: k.name, rate: k.rate }] })}
+                        className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-sm font-bold">
+                        {k.name}<Plus size={14} className="text-primary" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             {p.workers.map((k) => (
               <div key={k.id} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-soft">
                 <input className="field flex-1" value={k.name}
