@@ -21,7 +21,8 @@ export const weekTotal = (p: Project, w: Week) =>
   p.workers.reduce((s, k) => s + workerDays(w, k.id) * k.rate, 0);
 export const itemsTotal = (p: Project) => (p.items ?? []).reduce((s, it) => s + it.total, 0);
 export const makeItem = (name: string, qty: number, price: number): Item => ({ name: name.trim(), qty, price, total: qty * price });
-export const weekCombinedTotal = (p: Project, w: Week) => weekTotal(p, w) + itemsTotal(p);
+export const itemsRemaining = (p: Project) => itemsTotal(p) - (p.itemsPaid ?? 0);
+export const weekCombinedTotal = (p: Project, w: Week) => weekTotal(p, w) + itemsRemaining(p);
 
 export const fmt = (n: number) => n.toLocaleString("en-US");
 

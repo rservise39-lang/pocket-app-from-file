@@ -18,5 +18,6 @@ describe("material accounting", () => {
     if (!oldWeek || !newWeek) throw new Error("Missing test weeks");
     expect(weekCombinedTotal(p, oldWeek)).toBe(4500);
     expect(weekCombinedTotal(p, newWeek)).toBe(7500);
+    expect(weekCombinedTotal({ ...p, itemsPaid: 1000 }, newWeek)).toBe(6500);
   });
 });
