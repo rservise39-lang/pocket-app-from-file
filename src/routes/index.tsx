@@ -303,8 +303,8 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                     مدفوع:
                     <input className="field flex-1" type="number" inputMode="numeric" value={w.paid || ""}
                       onChange={(e) => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: +e.target.value } : x) })} />
-                    <span className={total - w.paid > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>باقي {fmt(total - w.paid)}</span>
-                    <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: total } : x) })}><Check />تم الدفع</Button>
+                    <span className={weekCombinedTotal(p, w) - w.paid > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>باقي {fmt(weekCombinedTotal(p, w) - w.paid)}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: weekCombinedTotal(p, w) } : x) })}><Check />تم الدفع</Button>
                   </label>
                 </section>
               );
