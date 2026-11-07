@@ -1,6 +1,8 @@
 # Roadmap
 
 - [x] Save the app to the phone (home-screen icon + install support)
-- [ ] Import the rest of the spreadsheet's sheets (other weeks' records, materials) into the right worksites, workers and weeks
-- [ ] استيراد بقية أوراق الملف (أسابيع، مواد) إلى الورشات المناسبة
-- [ ] أسماء العمال لكل مشروع مع إمكانية إدراجهم أو حذفهم
+- [x] Spreadsheet parsing support; import button removed at user's request
+- [x] Optional worker selection per project with add and remove
+- [x] Navigate older and newer weeks
+- [x] Add materials with name, quantity and price
+- [x] Show material and combined totals in the selected week
