@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
-import { DAYS, fmt, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
+import { DAYS, fmt, itemsRemaining, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
 import { InstallButton } from "@/components/InstallButton";
 import { Button } from "@/components/ui/button";
 
@@ -221,6 +221,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                   <span className={itemsTotal(p) - (p.itemsPaid ?? 0) > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>
                     باقي {fmt(itemsTotal(p) - (p.itemsPaid ?? 0))}
                   </span>
+                  <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, itemsPaid: itemsTotal(p) })}><Check />تم الدفع</Button>
                 </label>
               </div>
             )}
@@ -291,7 +292,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                     <b className="font-display text-xl">{fmt(total)} دج</b>
                     </div>
                     <div className="flex items-center justify-between gap-2 text-sm">
-                      <span>مجموع السلع</span><b>{fmt(itemsTotal(p))} دج</b>
+                      <span>مجموع السلع</span><b>{fmt(itemsRemaining(p))} دج</b>
                     </div>
                     <div className="flex items-center justify-between gap-2 border-t pt-2">
                       <span className="font-bold">المجموع الكلي</span>
@@ -303,6 +304,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                     <input className="field flex-1" type="number" inputMode="numeric" value={w.paid || ""}
                       onChange={(e) => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: +e.target.value } : x) })} />
                     <span className={total - w.paid > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>باقي {fmt(total - w.paid)}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: total } : x) })}><Check />تم الدفع</Button>
                   </label>
                 </section>
               );
