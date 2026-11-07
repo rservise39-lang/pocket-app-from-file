@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
-import { DAYS, fmt, itemsTotal, uid, useProjects, weekTotal, workerDays, type Project } from "@/lib/store";
+import { ArrowRight, ChevronLeft, ChevronRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
+import { DAYS, fmt, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
 import { InstallButton } from "@/components/InstallButton";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,7 +43,7 @@ function App() {
   return (
     <div dir="rtl" className="mx-auto min-h-screen max-w-md bg-background pb-24 font-body">
       {open ? (
-        <ProjectView p={open} known={known} onBack={() => setOpenId(null)} update={update}
+        <ProjectView key={open.id} p={open} known={known} onBack={() => setOpenId(null)} update={update}
           remove={() => { if (confirm("حذف الورشة؟")) { setProjects(projects.filter((x) => x.id !== open.id)); setOpenId(null); } }} />
       ) : (
         <>
@@ -67,7 +68,7 @@ function App() {
                     <span className="flex items-center gap-1"><Users size={14} />{p.workers.length} عمال</span>
                     <span className="flex items-center gap-1"><CalendarDays size={14} />{p.weeks.length} أسابيع</span>
                     {(p.items?.length ?? 0) > 0 && (
-                      <span className="flex items-center gap-1"><Package size={14} />{p.items!.length} مادة</span>
+                      <span className="flex items-center gap-1"><Package size={14} />{p.items?.length ?? 0} مادة</span>
                     )}
                   </div>
                 </button>
@@ -97,7 +98,14 @@ function Fab({ label, onClick }: { label: string; onClick: () => void }) {
 
 function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: { name: string; rate: number }[]; onBack: () => void; update: (p: Project) => void; remove: () => void }) {
   const [tab, setTab] = useState<"weeks" | "workers" | "items">("weeks");
-  const weeks = [...p.weeks].reverse();
+  const weeks = [...p.weeks].sort((a, b) => a.start.localeCompare(b.start));
+  const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
+  const selectedIndex = selectedWeekId ? weeks.findIndex((w) => w.id === selectedWeekId) : weeks.length - 1;
+  const currentIndex = selectedIndex < 0 ? weeks.length - 1 : selectedIndex;
+  const currentWeek = weeks[currentIndex];
+  const [itemName, setItemName] = useState("");
+  const [itemQty, setItemQty] = useState("1");
+  const [itemPrice, setItemPrice] = useState("");
 
   const setAtt = (wid: string, kid: string, d: number) => {
     update({ ...p, weeks: p.weeks.map((w) => {
@@ -164,17 +172,40 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
           </>
         ) : tab === "items" ? (
           <>
+            <form className="space-y-3 border-b pb-4" onSubmit={(e) => {
+              e.preventDefault();
+              const qty = Number(itemQty), price = Number(itemPrice);
+              if (!itemName.trim() || !itemQty || !itemPrice || !Number.isFinite(qty) || !Number.isFinite(price) || qty <= 0 || price < 0) return;
+              update({ ...p, items: [...(p.items ?? []), makeItem(itemName, qty, price)] });
+              setItemName(""); setItemQty("1"); setItemPrice("");
+            }}>
+              <label className="block text-sm">اسم المادة
+                <input className="field mt-1 w-full" value={itemName} onChange={(e) => setItemName(e.target.value)} required />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-sm">الكمية
+                  <input className="field mt-1 w-full" type="number" inputMode="decimal" min="0.001" step="any" value={itemQty} onChange={(e) => setItemQty(e.target.value)} required />
+                </label>
+                <label className="block text-sm">السعر للوحدة (دج)
+                  <input className="field mt-1 w-full" type="number" inputMode="decimal" min="0" step="any" value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} required />
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm">مجموع المادة: <b>{fmt((Number(itemQty) || 0) * (Number(itemPrice) || 0))} دج</b></span>
+                <Button type="submit"><Plus />إضافة مادة</Button>
+              </div>
+            </form>
             {(p.items?.length ?? 0) === 0 && (
               <p className="text-center text-muted-foreground">لا توجد مواد مسجّلة لهذه الورشة</p>
             )}
             {(p.items ?? []).map((it, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-2xl bg-card p-3 shadow-soft">
-                <span className="flex-1 text-sm font-bold">{it.name}</span>
+              <div key={i} className="flex flex-wrap items-center gap-2 rounded-2xl bg-card p-3 shadow-soft">
+                <span className="min-w-0 flex-1 break-words text-sm font-bold">{it.name}</span>
                 <span className="text-xs text-muted-foreground">{fmt(it.qty)} × {fmt(it.price)}</span>
                 <b className="font-display text-sm">{fmt(it.total)}</b>
-                <button
+                <Button variant="ghost" size="icon"
                   onClick={() => update({ ...p, items: (p.items ?? []).filter((_, j) => j !== i) })}
-                  className="text-destructive" aria-label="حذف المادة"><Trash2 size={16} /></button>
+                   className="text-destructive" aria-label="حذف المادة"><Trash2 size={16} /></Button>
               </div>
             ))}
             {(p.items?.length ?? 0) > 0 && (
@@ -197,12 +228,25 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
         ) : (
           <>
             {weeks.length === 0 && <p className="text-center text-muted-foreground">لا توجد أسابيع بعد</p>}
-            {weeks.map((w, i) => {
+            {currentWeek && (
+              <nav aria-label="التنقل بين الأسابيع" className="flex items-center justify-between gap-2">
+                <Button variant="outline" size="sm" disabled={currentIndex === 0} onClick={() => {
+                  const previous = weeks[currentIndex - 1];
+                  if (previous) setSelectedWeekId(previous.id);
+                }}><ChevronRight />الأقدم</Button>
+                <span className="text-sm font-bold">الأسبوع {currentIndex + 1} من {weeks.length}</span>
+                <Button variant="outline" size="sm" disabled={currentIndex === weeks.length - 1} onClick={() => {
+                  const next = weeks[currentIndex + 1];
+                  if (next) setSelectedWeekId(next.id);
+                }}>الأحدث<ChevronLeft /></Button>
+              </nav>
+            )}
+            {(currentWeek ? [currentWeek] : []).map((w) => {
               const total = weekTotal(p, w);
               return (
                 <section key={w.id} className="rounded-2xl bg-card p-3 shadow-soft">
                   <div className="mb-2 flex items-center justify-between">
-                    <h3 className="font-bold">الأسبوع {weeks.length - i}</h3>
+                    <h3 className="font-bold">الأسبوع {currentIndex + 1}</h3>
                     <span className="text-xs text-muted-foreground">{w.start} ← {addDays(w.start, 5)}</span>
                   </div>
                   <div className="overflow-x-auto">
@@ -241,9 +285,18 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                       </tbody>
                     </table>
                   </div>
-                  <div className="mt-3 flex items-center justify-between rounded-xl bg-muted p-3">
-                    <span className="text-sm">المجموع</span>
+                  <div className="mt-3 space-y-2 rounded-xl bg-muted p-3">
+                    <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm">مجموع أجرة العمال</span>
                     <b className="font-display text-xl">{fmt(total)} دج</b>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span>مجموع السلع</span><b>{fmt(itemsTotal(p))} دج</b>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 border-t pt-2">
+                      <span className="font-bold">المجموع الكلي</span>
+                      <b className="font-display text-xl text-primary">{fmt(weekCombinedTotal(p, w))} دج</b>
+                    </div>
                   </div>
                   <label className="mt-2 flex items-center gap-2 text-sm">
                     مدفوع:
@@ -255,10 +308,12 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
               );
             })}
             <Fab label="أسبوع جديد" onClick={() => {
-              const last = p.weeks[p.weeks.length - 1];
+              const last = weeks[weeks.length - 1];
               let start = last ? addDays(last.start, 7) : new Date().toISOString().slice(0, 10);
               if (!last) { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); start = d.toISOString().slice(0, 10); }
-              update({ ...p, weeks: [...p.weeks, { id: uid(), start, att: {}, paid: 0 }] });
+              const id = uid();
+              update({ ...p, weeks: [...p.weeks, { id, start, att: {}, paid: 0 }] });
+              setSelectedWeekId(id);
             }} />
           </>
         )}
