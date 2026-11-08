@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Materials remain project-scoped in the existing store; weekly combined totals add the project's materials to only the selected week's wages, preserving existing material records without duplication.
+- Centralize calendar-week arithmetic in src/lib/weeks.ts; normalize newly chosen dates to Saturday and reuse existing weeks by start date to avoid duplicate attendance records.
