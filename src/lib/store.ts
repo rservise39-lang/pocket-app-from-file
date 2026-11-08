@@ -23,6 +23,9 @@ export const itemsTotal = (p: Project) => (p.items ?? []).reduce((s, it) => s + 
 export const makeItem = (name: string, qty: number, price: number): Item => ({ name: name.trim(), qty, price, total: qty * price });
 export const itemsRemaining = (p: Project) => itemsTotal(p) - (p.itemsPaid ?? 0);
 export const weekCombinedTotal = (p: Project, w: Week) => weekTotal(p, w) + itemsRemaining(p);
+/** Adds a new payment to what was already paid; invalid amounts change nothing. */
+export const applyPayment = (paid: number, amount: number) =>
+  Number.isFinite(amount) && amount > 0 ? (paid || 0) + amount : paid || 0;
 
 export const fmt = (n: number) => n.toLocaleString("en-US");
 
