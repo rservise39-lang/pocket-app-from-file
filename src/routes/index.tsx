@@ -4,6 +4,7 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, Package, Plus, Trash2, Us
 import { applyPayment, DAYS, fmt, itemsRemaining, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
 import { InstallButton } from "@/components/InstallButton";
 import { Button } from "@/components/ui/button";
+import { addDays, currentWeekStart, weekStart } from "@/lib/weeks";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,12 +19,6 @@ export const Route = createFileRoute("/")({
   }),
   component: App,
 });
-
-const addDays = (d: string, n: number) => {
-  const x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x.toISOString().slice(0, 10);
-};
 
 function App() {
   const [projects, setProjects] = useProjects();
@@ -137,6 +132,15 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
   const [itemName, setItemName] = useState("");
   const [itemQty, setItemQty] = useState("1");
   const [itemPrice, setItemPrice] = useState("");
+  const [newWeekDate, setNewWeekDate] = useState(() => currentWeekStart());
+  const openWeek = (date: string) => {
+    const start = weekStart(date);
+    const existing = weeks.find((w) => w.start === start);
+    if (existing) { setSelectedWeekId(existing.id); return; }
+    const id = uid();
+    update({ ...p, weeks: [...p.weeks, { id, start, att: {}, paid: 0 }] });
+    setSelectedWeekId(id);
+  };
 
   const setAtt = (wid: string, kid: string, d: number) => {
     update({ ...p, weeks: p.weeks.map((w) => {
@@ -251,12 +255,29 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
           </>
         ) : (
           <>
+            <form className="space-y-3 border-b pb-4" onSubmit={(e) => {
+              e.preventDefault();
+              if (newWeekDate) openWeek(newWeekDate);
+            }}>
+              <label className="block text-sm">تاريخ الأسبوع
+                <input aria-label="تاريخ الأسبوع" type="date" className="field mt-1 w-full" required
+                  value={newWeekDate} onChange={(e) => setNewWeekDate(e.target.value)} />
+              </label>
+              <div className="flex flex-wrap justify-between gap-2">
+                <Button type="submit" size="sm"><Plus />إضافة / فتح الأسبوع</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => {
+                  const start = currentWeekStart();
+                  setNewWeekDate(start); openWeek(start);
+                }}><CalendarDays />الأسبوع الحالي</Button>
+              </div>
+            </form>
             {weeks.length === 0 && <p className="text-center text-muted-foreground">لا توجد أسابيع بعد</p>}
             {currentWeek && (
               <nav aria-label="التنقل بين الأسابيع" className="flex items-center justify-between gap-2">
-                <Button variant="outline" size="sm" disabled={currentIndex === 0} onClick={() => {
+                <Button variant="outline" size="sm" onClick={() => {
                   const previous = weeks[currentIndex - 1];
                   if (previous) setSelectedWeekId(previous.id);
+                  else openWeek(addDays(currentWeek.start, -7));
                 }}><ChevronRight />الأقدم</Button>
                 <span className="text-sm font-bold">الأسبوع {currentIndex + 1} من {weeks.length}</span>
                 <Button variant="outline" size="sm" disabled={currentIndex === weeks.length - 1} onClick={() => {
@@ -284,7 +305,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                       <tbody>
                         {DAYS.map((d, di) => (
                           <tr key={d}>
-                            <td className="p-1 text-right text-xs">{d}</td>
+                            <td className="p-1 text-right text-xs">{d}<span dir="ltr" className="block whitespace-nowrap text-muted-foreground">{addDays(w.start, di).slice(5)}</span></td>
                             {p.workers.map((k) => {
                               const v = w.att[k.id]?.[di] ?? 0;
                               return (
@@ -330,12 +351,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
               );
             })}
             <Fab label="أسبوع جديد" onClick={() => {
-              const last = weeks[weeks.length - 1];
-              let start = last ? addDays(last.start, 7) : new Date().toISOString().slice(0, 10);
-              if (!last) { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); start = d.toISOString().slice(0, 10); }
-              const id = uid();
-              update({ ...p, weeks: [...p.weeks, { id, start, att: {}, paid: 0 }] });
-              setSelectedWeekId(id);
+              if (newWeekDate) openWeek(newWeekDate);
             }} />
           </>
         )}
