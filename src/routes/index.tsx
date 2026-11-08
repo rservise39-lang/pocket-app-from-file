@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
-import { DAYS, fmt, itemsRemaining, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
+import { applyPayment, DAYS, fmt, itemsRemaining, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
 import { InstallButton } from "@/components/InstallButton";
 import { Button } from "@/components/ui/button";
 
@@ -93,6 +93,37 @@ function Fab({ label, onClick }: { label: string; onClick: () => void }) {
       className="fixed bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground shadow-soft">
       <Plus size={18} />{label}
     </button>
+  );
+}
+
+function PayRow({ total, paid, onChange }: { total: number; paid: number; onChange: (paid: number) => void }) {
+  const [amount, setAmount] = useState("");
+  const remaining = total - (paid || 0);
+  const pay = () => {
+    const n = Number(amount);
+    if (!amount || !Number.isFinite(n) || n <= 0) return;
+    onChange(applyPayment(paid, n));
+    setAmount("");
+  };
+  return (
+    <div className="space-y-2 text-sm">
+      <div className="flex items-center gap-2">
+        <span>مدفوع:</span>
+        <input className="field min-w-0 flex-1" type="number" inputMode="numeric" min="0" step="any" placeholder="المبلغ"
+          value={amount} onChange={(e) => setAmount(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); pay(); } }} />
+        <Button type="button" size="sm" onClick={pay} disabled={!amount}><Check />تم الدفع</Button>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-muted-foreground">
+          المدفوع: <b className="text-foreground">{fmt(paid || 0)}</b>
+          {(paid || 0) > 0 && (
+            <button type="button" className="ms-2 text-xs underline" onClick={() => { if (confirm("إلغاء كل المدفوعات؟")) onChange(0); }}>إلغاء</button>
+          )}
+        </span>
+        <span className={remaining > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>الباقي: {fmt(remaining)} دج</span>
+      </div>
+    </div>
   );
 }
 
@@ -214,15 +245,7 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                   <span>مجموع المواد</span>
                   <b className="font-display text-lg">{fmt(itemsTotal(p))} دج</b>
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  مدفوع:
-                  <input className="field flex-1" type="number" inputMode="numeric" value={p.itemsPaid || ""}
-                    onChange={(e) => update({ ...p, itemsPaid: +e.target.value })} />
-                  <span className={itemsTotal(p) - (p.itemsPaid ?? 0) > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>
-                    باقي {fmt(itemsTotal(p) - (p.itemsPaid ?? 0))}
-                  </span>
-                  <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, itemsPaid: itemsTotal(p) })}><Check />تم الدفع</Button>
-                </label>
+                <PayRow total={itemsTotal(p)} paid={p.itemsPaid ?? 0} onChange={(paid) => update({ ...p, itemsPaid: paid })} />
               </div>
             )}
           </>
@@ -299,13 +322,10 @@ function ProjectView({ p, known, onBack, update, remove }: { p: Project; known: 
                       <b className="font-display text-xl text-primary">{fmt(weekCombinedTotal(p, w))} دج</b>
                     </div>
                   </div>
-                  <label className="mt-2 flex items-center gap-2 text-sm">
-                    مدفوع:
-                    <input className="field flex-1" type="number" inputMode="numeric" value={w.paid || ""}
-                      onChange={(e) => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: +e.target.value } : x) })} />
-                    <span className={weekCombinedTotal(p, w) - w.paid > 0 ? "font-bold text-destructive" : "font-bold text-primary"}>باقي {fmt(weekCombinedTotal(p, w) - w.paid)}</span>
-                    <Button type="button" size="sm" variant="outline" onClick={() => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid: weekCombinedTotal(p, w) } : x) })}><Check />تم الدفع</Button>
-                  </label>
+                  <div className="mt-2">
+                    <PayRow key={w.id} total={weekCombinedTotal(p, w)} paid={w.paid}
+                      onChange={(paid) => update({ ...p, weeks: p.weeks.map((x) => x.id === w.id ? { ...x, paid } : x) })} />
+                  </div>
                 </section>
               );
             })}
