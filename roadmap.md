@@ -7,3 +7,4 @@
 - [x] Add materials with name, quantity and price
 - [x] Show material and combined totals in the selected week
 - [x] Add historical weeks, a date selector and access to the current calendar week
+- [ ] Link Firebase JSON file to a database (awaiting user confirmation)
