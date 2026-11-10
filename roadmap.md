@@ -8,4 +8,5 @@
 - [x] Show material and combined totals in the selected week
 - [x] Add historical weeks, a date selector and access to the current calendar week
 - [ ] Link Firebase JSON file to a database (awaiting user confirmation)
-- [ ] Package the published app as a signed Android APK for direct installation and verify the package.
+- [x] Package the published app as a signed Android APK; verify signature, alignment and archive integrity; provide the downloadable file.
+- [ ] Verify APK installation and launch on Android: emulator booted, but installation commands timed out; a successful installation is not yet confirmed.
