@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { persistRestore, PROJECTS_STORAGE_KEY } from "./backup";
 
 export const DAYS = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس"];
 
@@ -50,7 +51,7 @@ const seed: Project[] = [
   },
 ];
 
-const KEY = "a3mali-v1";
+const KEY = PROJECTS_STORAGE_KEY;
 
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>(seed);
@@ -63,5 +64,10 @@ export function useProjects() {
   useEffect(() => {
     if (ready) localStorage.setItem(KEY, JSON.stringify(projects));
   }, [projects, ready]);
-  return [projects, setProjects] as const;
+  const restore = (text: string) => {
+    if (!ready) throw new Error("انتظر تحميل بيانات الجهاز قبل الاستعادة.");
+    const restored = persistRestore(text, localStorage);
+    setProjects(restored);
+  };
+  return [projects, setProjects, ready, restore] as const;
 }

@@ -12,3 +12,4 @@
 - Materials remain project-scoped in the existing store; weekly combined totals add the project's materials to only the selected week's wages, preserving existing material records without duplication.
 - Centralize calendar-week arithmetic in src/lib/weeks.ts; normalize newly chosen dates to Saturday and reuse existing weeks by start date to avoid duplicate attendance records.
 - Direct-install Android packaging wraps the published HTTPS app with persistent WebView storage; keep web business logic unchanged so published updates remain available without rebuilding the wrapper.
+- Local JSON backups preserve the existing project-array format and storage key; validate in src/lib/backup.ts and persist restoration before updating React state so failed writes cannot replace displayed data.

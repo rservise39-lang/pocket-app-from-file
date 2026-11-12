@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Add local JSON backup and validated, previewed, confirmed restoration without changing existing data or calculations; run all available tests.
+
 - [x] Save the app to the phone (home-screen icon + install support)
 - [x] Spreadsheet parsing support; import button removed at user's request
 - [x] Optional worker selection per project with add and remove

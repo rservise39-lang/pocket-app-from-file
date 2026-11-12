@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Package, Plus, Trash2, Users, CalendarDays } from "lucide-react";
 import { applyPayment, DAYS, fmt, itemsRemaining, itemsTotal, makeItem, uid, useProjects, weekTotal, weekCombinedTotal, workerDays, type Project } from "@/lib/store";
 import { InstallButton } from "@/components/InstallButton";
+import { BackupControls } from "@/components/BackupControls";
 import { Button } from "@/components/ui/button";
 import { addDays, currentWeekStart, weekStart } from "@/lib/weeks";
 
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/")({
 });
 
 function App() {
-  const [projects, setProjects] = useProjects();
+  const [projects, setProjects, ready, restore] = useProjects();
   const [openId, setOpenId] = useState<string | null>(null);
   const known = (() => {
     const seen = new Set<string>();
@@ -70,6 +71,7 @@ function App() {
               );
             })}
             <InstallButton />
+            <BackupControls projects={projects} ready={ready} restore={restore} />
           </main>
           <Fab label="ورشة جديدة" onClick={() => {
             const name = prompt("اسم الورشة / الزبون");
